@@ -10,7 +10,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build: cnk19/cr45-backend:latest
     container_name: cr45-backend
     depends_on:
       - postgres
@@ -20,7 +20,7 @@ services:
       - "8080"
 
   frontend:
-    build: ./frontend
+    build: cnk19/cr45-frontend:latest
     container_name: cr45-frontend
     depends_on:
       - backend
