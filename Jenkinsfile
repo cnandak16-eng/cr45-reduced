@@ -11,19 +11,25 @@ pipeline {
 
         stage('Build Frontend') {
             steps {
-                dir('frontend') {
-                    sh 'npm install'
-                    sh 'npm run build'
-                }
+                sh '''
+                docker run --rm \
+                -v "$WORKSPACE/frontend:/app" \
+                -w /app \
+                node:22-alpine \
+                sh -c "npm install && npm run build"
+                '''
             }
         }
 
         stage('Build Backend') {
             steps {
-                dir('backend') {
-                    sh 'go mod download'
-                    sh 'go build -o cr45-backend ./cmd/server'
-                }
+                sh '''
+                docker run --rm \
+                -v "$WORKSPACE/backend:/app" \
+                -w /app \
+                golang:1.26-alpine \
+                sh -c "go mod download && go build -o cr45-backend ./cmd/server"
+                '''
             }
         }
 
@@ -38,7 +44,6 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
         }
-
         failure {
             echo 'Pipeline failed!'
         }
