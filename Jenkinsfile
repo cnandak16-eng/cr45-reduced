@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "cnk19/cr45"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -11,31 +15,50 @@ pipeline {
 
         stage('Build Frontend') {
             steps {
-                sh '''
-                docker run --rm \
-                -v "$WORKSPACE/frontend:/app" \
-                -w /app \
-                node:22-alpine \
-                sh -c "npm install && npm run build"
-                '''
+                dir('frontend') {
+                    sh '''
+                    npm install
+                    npm run build
+                    '''
+                }
             }
         }
 
         stage('Build Backend') {
             steps {
-                sh '''
-                docker run --rm \
-                -v "$WORKSPACE/backend:/app" \
-                -w /app \
-                golang:1.26-alpine \
-                sh -c "go mod download && go build -o cr45-backend ./cmd/server"
-                '''
+                dir('backend') {
+                    sh '''
+                    go mod download
+                    go build -o cr45-backend ./cmd/server
+                    '''
+                }
             }
         }
 
         stage('Build Docker Images') {
             steps {
                 sh 'docker compose build'
+            }
+        }
+
+        stage('Push Docker Images') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh 'docker compose push'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh '''
+                docker compose pull
+                docker compose up -d
+                '''
             }
         }
     }
