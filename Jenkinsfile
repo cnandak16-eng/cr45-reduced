@@ -34,17 +34,16 @@ pipeline {
                 }
             }
         }
-
         stage('Build Docker Images') {
-            steps {
-                sh '''
-        echo "===== nginx.conf ====="
-        cat frontend/nginx.conf
+             steps {
+        sh '''
+        docker build --no-cache \
+          -t cr45-pipeline-frontend:latest \
+          ./frontend
 
-        echo "===== Dockerfile ====="
-        cat frontend/Dockerfile
-
-        docker compose build --no-cache
+        docker build --no-cache \
+          -t cr45-pipeline-backend:latest \
+          ./backend
         '''
     }
 }
