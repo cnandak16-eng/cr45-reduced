@@ -10,6 +10,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: cnk19/cr45-backend:latest
     container_name: cr45-backend
     depends_on:
@@ -20,6 +23,9 @@ services:
       - "8080"
 
   frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     image: cnk19/cr45-frontend:latest
     container_name: cr45-frontend
     depends_on:
