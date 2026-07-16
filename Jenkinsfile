@@ -47,7 +47,7 @@ pipeline {
     stage('Verify Frontend Image') {
     steps {
         sh '''
-        docker run --rm cr45-pipeline-frontend:latest \
+        docker run --rm ${IMAGE_NAME}-frontend:latest \
             cat /etc/nginx/conf.d/default.conf
         '''
     }
@@ -62,10 +62,6 @@ pipeline {
                 )]) {
                     sh '''
                     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
-                    docker tag cr45-pipeline-frontend:latest cnk19/cr45-frontend:latest
-                    docker tag cr45-pipeline-backend:latest cnk19/cr45-backend:latest
-
                     docker push cnk19/cr45-frontend:latest
                     docker push cnk19/cr45-backend:latest
                     '''
