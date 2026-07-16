@@ -35,15 +35,20 @@ pipeline {
             }
         }
         stage('Build Docker Images') {
-             steps {
+            steps {
         sh '''
-        docker build --no-cache \
-          -t cr45-pipeline-frontend:latest \
-          ./frontend
+        docker image rm -f cr45-pipeline-frontend:latest || true
+        docker image rm -f cr45-pipeline-backend:latest || true
 
-        docker build --no-cache \
-          -t cr45-pipeline-backend:latest \
-          ./backend
+        docker compose build --no-cache
+        '''
+        }
+    }
+    stage('Verify Frontend Image') {
+    steps {
+        sh '''
+        docker run --rm cr45-pipeline-frontend:latest \
+            cat /etc/nginx/conf.d/default.conf
         '''
     }
 }
@@ -72,7 +77,6 @@ pipeline {
             steps {
                 sh '''
                 docker compose down || true
-                docker compose pull
                 docker compose up -d
                 '''
             }
