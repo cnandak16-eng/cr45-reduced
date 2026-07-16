@@ -37,9 +37,17 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh 'docker compose build'
-            }
-        }
+                sh '''
+        echo "===== nginx.conf ====="
+        cat frontend/nginx.conf
+
+        echo "===== Dockerfile ====="
+        cat frontend/Dockerfile
+
+        docker compose build --no-cache
+        '''
+    }
+}
 
         stage('Push Docker Images') {
             steps {
