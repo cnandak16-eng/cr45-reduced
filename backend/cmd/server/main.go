@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/CR45-NITT/cr45-reduced/backend/internal/auth"
 	"github.com/CR45-NITT/cr45-reduced/backend/internal/api"
+	"github.com/CR45-NITT/cr45-reduced/backend/internal/auth"
 	"github.com/CR45-NITT/cr45-reduced/backend/internal/store"
 	"github.com/CR45-NITT/cr45-reduced/backend/migrations"
 )
@@ -52,13 +52,31 @@ func mustOpenDB(databaseURL string) *sql.DB {
 	if err != nil {
 		log.Fatalf("db open failed: %v", err)
 	}
+
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	if err := db.Ping(); err != nil {
-		log.Fatalf("db ping failed: %v", err)
+
+	const (
+		maxRetries = 20
+		retryDelay = 2 * time.Second
+	)
+
+	for i := 1; i <= maxRetries; i++ {
+		err = db.Ping()
+
+		if err == nil {
+			log.Println("Connected to PostgreSQL successfully!")
+			return db
+		}
+
+		log.Printf("Database not ready (attempt %d/%d): %v", i, maxRetries, err)
+
+		time.Sleep(retryDelay)
 	}
-	return db
+
+	log.Fatalf("Could not connect to PostgreSQL after %d attempts", maxRetries)
+	return nil
 }
 
 func envOrDefault(key, fallback string) string {
